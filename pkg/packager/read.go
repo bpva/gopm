@@ -119,3 +119,30 @@ func readConfigFile(configFile string) (*Package, error) {
 
 	return &pkg, nil
 }
+
+func GetNameAndVersionFromConfigFile(configFilePath string) (string, string, error) {
+	fileData, err := os.ReadFile(configFilePath)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to read config file: %w", err)
+	}
+
+	ext := filepath.Ext(configFilePath)
+
+	var pkg Package
+	switch ext {
+	case ".json":
+		err = json.Unmarshal(fileData, &pkg)
+		if err != nil {
+			return "", "", fmt.Errorf("failed to parse JSON config file: %w", err)
+		}
+	case ".yaml", ".yml":
+		err = yaml.Unmarshal(fileData, &pkg)
+		if err != nil {
+			return "", "", fmt.Errorf("failed to parse YAML config file: %w", err)
+		}
+	default:
+		return "", "", fmt.Errorf("unsupported config file format: %s", ext)
+	}
+
+	return pkg.Name, pkg.Version, nil
+}
