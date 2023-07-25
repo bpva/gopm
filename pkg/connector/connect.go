@@ -50,10 +50,18 @@ func CheckSSHConnection(config config.SSHConfig) error {
 	}
 	defer sftpClient.Close()
 
-	// Perform a simple operation, such as listing the root directory
-	_, err = sftpClient.ReadDir("/")
+	// Perform a simple operation
+	// To fix
+	homeDir, err := sftpClient.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get home directory: %w", err)
+	}
+	fmt.Printf("Home Directory: %s\n", homeDir)
+
+	_, err = sftpClient.ReadDir(homeDir)
 	if err != nil {
 		return fmt.Errorf("failed to list directory on SSH server: %w", err)
 	}
+
 	return nil
 }
