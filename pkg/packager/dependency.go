@@ -106,22 +106,32 @@ func CollectDependencies(updateConfig *UpdateConfig, sshClient *ssh.Client) erro
 		}
 
 		dependencyDir := filepath.Join("gopm_packages", update.Name)
-		versions, err := findSuitableVersions(dependencyDir, update.Version, update.Operator)
+		versions, err := findSuitableVersions(dependencyDir, update.Version, update.Operator, sshClient)
 		if err != nil {
+			session.Close()
 			return fmt.Errorf("failed to find suitable versions: %w", err)
 		}
 
 		if len(versions) > 0 {
-			// Use the first suitable version
+			// Use the greatest version suitable
 			suitableVersion := versions[0]
 
 			dependenciesFilePath := filepath.Join(dependencyDir, suitableVersion, "dependencies.json")
 
 			command := fmt.Sprintf("cat %s", dependenciesFilePath)
-			output, err := session.CombinedOutput(command)
-			session.Close()
+
+			execSession, err := sshClient.NewSession()
 			if err != nil {
-				return fmt.Errorf("failed to execute SSH command %s: %w. Please ensure that package exists", command, err)
+				session.Close()
+				return fmt.Errorf("failed to create SSH session for command execution: %w", err)
+			}
+
+			output, err := execSession.CombinedOutput(command)
+			execSession.Close() // Close the execSession
+			session.Close()
+
+			if err != nil {
+				return fmt.Errorf("failed to execute SSH command %s: %w. Please ensure that the package exists", command, err)
 			}
 
 			var dependencies []Dependency
@@ -130,17 +140,25 @@ func CollectDependencies(updateConfig *UpdateConfig, sshClient *ssh.Client) erro
 				return fmt.Errorf("failed to parse dependencies JSON: %w", err)
 			}
 
-			err = addDependencies(updateConfig, dependencies)
+			err = addDependencies(updateConfig, dependencies, sshClient)
 			if err != nil {
 				return fmt.Errorf("failed to add dependencies: %w", err)
 			}
+		} else {
+			session.Close()
 		}
 	}
 
 	return nil
 }
 
-func addDependencies(updateConfig *UpdateConfig, dependencies []Dependency) error {
+func addDependencies(updateConfig *UpdateConfig, dependencies []Dependency, sshClient *ssh.Client) error {
+	session, err := sshClient.NewSession()
+	if err != nil {
+		return fmt.Errorf("failed to create SSH session: %w", err)
+	}
+	defer session.Close()
+
 	for len(dependencies) > 0 {
 		dependency := dependencies[0]
 		dependencies = dependencies[1:]
@@ -165,7 +183,7 @@ func addDependencies(updateConfig *UpdateConfig, dependencies []Dependency) erro
 			updateConfig.Updates = append(updateConfig.Updates, newDependency)
 
 			dependencyDir := filepath.Join("gopm_packages", dependency.Name)
-			versions, err := findSuitableVersions(dependencyDir, dependency.Version, dependency.Operator)
+			versions, err := findSuitableVersions(dependencyDir, dependency.Version, dependency.Operator, sshClient)
 			if err != nil {
 				return fmt.Errorf("failed to find suitable versions: %w", err)
 			}
@@ -176,38 +194,43 @@ func addDependencies(updateConfig *UpdateConfig, dependencies []Dependency) erro
 
 				dependenciesFilePath := filepath.Join(dependencyDir, suitableVersion, "dependencies.json")
 
-				fileContent, err := os.ReadFile(dependenciesFilePath)
+				command := fmt.Sprintf("cat %s", dependenciesFilePath)
+				execSession, err := sshClient.NewSession()
 				if err != nil {
-					return fmt.Errorf("failed to read dependencies file: %w", err)
+					session.Close()
+					return fmt.Errorf("failed to create SSH session for command execution: %w", err)
+				}
+				output, err := execSession.CombinedOutput(command)
+				execSession.Close()
+				session.Close()
+				if err != nil {
+					return fmt.Errorf("failed to execute SSH command %s: %w. Please ensure that package exists", command, err)
 				}
 
-				if len(fileContent) > 0 && string(fileContent) != "[]" && strings.TrimSpace(string(fileContent)) != "null" {
-					var nestedDependencies []Dependency
-					fmt.Printf("File content: %s\n", string(fileContent))
-					err = json.Unmarshal(fileContent, &nestedDependencies)
-					if err != nil {
-						return fmt.Errorf("failed to parse dependencies JSON: %w", err)
-					}
+				var nestedDependencies []Dependency
+				err = json.Unmarshal([]byte(strings.TrimSpace(string(output))), &nestedDependencies)
+				if err != nil {
+					return fmt.Errorf("failed to parse dependencies JSON: %w", err)
+				}
 
-					// Check if all nested dependencies are already found
-					allFound := true
-					for _, nestedDependency := range nestedDependencies {
-						nestedFound := false
-						for _, update := range updateConfig.Updates {
-							if update.Name == nestedDependency.Name && satisfiesOperator(update.Version, update.Operator, nestedDependency.Version) {
-								nestedFound = true
-								break
-							}
-						}
-						if !nestedFound {
-							allFound = false
-							dependencies = append(dependencies, nestedDependency)
+				// Check if all nested dependencies are already found
+
+				allFound := true
+				for _, nestedDependency := range nestedDependencies {
+					nestedFound := false
+					for _, update := range updateConfig.Updates {
+						if update.Name == nestedDependency.Name && satisfiesOperator(update.Version, update.Operator, nestedDependency.Version) {
+							nestedFound = true
+							break
 						}
 					}
-
-					if !allFound {
-						continue
+					if !nestedFound {
+						allFound = false
+						dependencies = append(dependencies, nestedDependency)
 					}
+				}
+				if !allFound {
+					continue
 				}
 			}
 		}
@@ -216,24 +239,54 @@ func addDependencies(updateConfig *UpdateConfig, dependencies []Dependency) erro
 	return nil
 }
 
-func findSuitableVersions(dir, targetVersion, operator string) ([]string, error) {
+func findSuitableVersions(dir, targetVersion, operator string, sshClient *ssh.Client) ([]string, error) {
 	versions := []string{}
 
-	files, err := os.ReadDir(dir)
-	if err != nil {
-		return versions, fmt.Errorf("failed to read directory: %w", err)
-	}
+	if sshClient != nil {
+		session, err := sshClient.NewSession()
+		if err != nil {
+			return versions, fmt.Errorf("failed to create SSH session: %w", err)
+		}
+		defer session.Close()
 
-	for _, file := range files {
-		if file.IsDir() {
-			version := file.Name()
+		// Construct the remote command to list the directory contents
+		command := fmt.Sprintf("ls -d %s/*/ | xargs -n 1 basename", dir)
 
-			if satisfiesOperator(version, operator, targetVersion) {
-				versions = append(versions, version)
+		// Execute the remote command
+		output, err := session.CombinedOutput(command)
+		if err != nil {
+			return versions, fmt.Errorf("failed to execute SSH command %s: %w", command, err)
+		}
+
+		// Split the output into individual lines
+		lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+
+		// Iterate over each line and check if it satisfies the version requirements
+		for _, line := range lines {
+			if satisfiesOperator(line, operator, targetVersion) {
+				versions = append(versions, line)
+			}
+		}
+	} else {
+		// Read the directory contents locally
+		files, err := os.ReadDir(dir)
+		if err != nil {
+			return versions, fmt.Errorf("failed to read directory: %w", err)
+		}
+
+		// Iterate over each file and check if it is a directory
+		for _, file := range files {
+			if file.IsDir() {
+				version := file.Name()
+
+				if satisfiesOperator(version, operator, targetVersion) {
+					versions = append(versions, version)
+				}
 			}
 		}
 	}
 
+	// Sort the versions in descending order
 	sort.Slice(versions, func(i, j int) bool {
 		v1, _ := semver.NewVersion(versions[i])
 		v2, _ := semver.NewVersion(versions[j])

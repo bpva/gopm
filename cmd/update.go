@@ -15,9 +15,7 @@ func update(packageFile string, sshConfig config.SSHConfig) {
 		fmt.Fprintf(os.Stderr, "failed to read update file: %v\n", err)
 		os.Exit(1)
 	}
-	for _, update := range updateConfig.Updates {
-		fmt.Printf("Package: %s, Version: %s, Operator: %s\n", update.Name, update.Version, update.Operator)
-	}
+
 	sshClient, err := connector.CreateSSHClient(sshConfig)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to create SSH client: %s\n", err)
@@ -29,6 +27,9 @@ func update(packageFile string, sshConfig config.SSHConfig) {
 		os.Exit(1)
 	}
 	for _, update := range updateConfig.Updates {
-		fmt.Printf("Package: %s, Version: %s, Operator: %s\n", update.Name, update.Version, update.Operator)
+		fmt.Println(update)
 	}
+
+	arch, err := connector.DownloadUpdates(updateConfig, sshClient)
+	_ = arch
 }
