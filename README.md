@@ -4,6 +4,20 @@ The Go package manager is designed to perform the following tasks:
 
 - Package files into an archive and upload them to a server via SSH.
 - Download archive files via SSH and unpack them.
+## Installation
+
+You can install the Go Package Manager using the following methods:
+
+### Method 1: Using "go install"
+
+You can install the latest version of the Go Package Manager by running the following command in your terminal:
+
+go install github.com/bpva/gopm/cmd/cli@latest
+
+
+### Method 2: From the Releases Page
+
+Alternatively, you can download the desired release version of the Go Package Manager from the Releases page (https://github.com/bpva/gopm/releases) on GitHub. Choose the appropriate binary for your operating system and architecture, and then follow the installation instructions provided in the release documentation.
 ## Configuration
 
 To configure the tool, you can use a `.env` file or environment variables. The tool supports the following configuration options:
@@ -29,6 +43,11 @@ If you want to specify a different location for the `.env` file, you can use the
 ```shell
 gopm create testdata/package.json -env /path/to/.env
 ```
+## Commands
+The package manager will provide the following commands:
+
+- `gopm create ./packet.json`: Packages the files specified in the package file into an archive.
+- `gopm update ./packages.json`: Downloads archive files via SSH and unpacks them.
 
 ## Package File Format
 The package file should have either a `.yaml` or `.json` format. It should include paths to select files using glob patterns.
@@ -62,11 +81,5 @@ The package file should have either a `.yaml` or `.json` format. It should inclu
   ]
 }
  ```
-
-## Commands
-The package manager will provide the following commands:
-
-- `gopm create ./packet.json`: Packages the files specified in the package file into an archive.
-- `gopm update ./packages.json`: Downloads archive files via SSH and unpacks them.
 
 And I could make any reasonable assumptions to simplify the development.
