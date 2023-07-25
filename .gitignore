@@ -33,3 +33,5 @@ gopm_packages
 #env
 .env
 
+
+dist/
