@@ -66,7 +66,7 @@ func CheckSSHConnection(config config.SSHConfig) error {
 	return nil
 }
 
-func createSSHClient(sshConfig config.SSHConfig) (*ssh.Client, error) {
+func CreateSSHClient(sshConfig config.SSHConfig) (*ssh.Client, error) {
 	var authMethods []ssh.AuthMethod
 
 	if sshConfig.Mode == "login+password" {

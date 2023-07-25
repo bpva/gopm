@@ -12,6 +12,7 @@ import (
 
 func create(packageFile string, sshConfig config.SSHConfig) {
 	packageDir, err := packager.CreatePackage(packageFile)
+	fmt.Println(packageDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to create package: %s\n", err)
 		os.Exit(1)
@@ -30,9 +31,17 @@ func create(packageFile string, sshConfig config.SSHConfig) {
 	}
 	fmt.Println("size of arch is ", len(arch))
 	fmt.Println("package created")
-	err = connector.SendAndUnpackArchive(arch, sshConfig)
+	sshClient, err := connector.CreateSSHClient(sshConfig)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to send and unpack archive: %s\n", err)
+		fmt.Fprintf(os.Stderr, "failed to create SSH client: %s\n", err)
 		os.Exit(1)
 	}
+	err = connector.UploadAndUnpackArchive(arch, sshClient, packageDir, packageFile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to upload and unpack archive: %s\n", err)
+		os.Exit(1)
+	} else {
+		fmt.Println("archive uploaded and unpacked on remote server ", sshConfig.Login, "@", sshConfig.Host)
+	}
+
 }
