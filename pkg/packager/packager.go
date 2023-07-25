@@ -6,18 +6,18 @@ import (
 	"path/filepath"
 )
 
-func CreatePackage(packageFile string) error {
+func CreatePackage(packageFile string) (string, error) {
 	// Read the package file
 	mainPackage, err := readConfigFile(packageFile)
 	if err != nil {
-		return fmt.Errorf("failed to read package file: %v", err)
+		return "", fmt.Errorf("failed to read package file: %v", err)
 	}
 
 	// Check if all dependencies exist and have suitable versions
 	for _, dependency := range mainPackage.Dependencies {
 		err := checkDependency(dependency)
 		if err != nil {
-			return err
+			return "", fmt.Errorf("failed to check dependency: %v", err)
 		}
 	}
 
@@ -26,7 +26,7 @@ func CreatePackage(packageFile string) error {
 	err = copyTargets(mainPackage.Targets, packageDir)
 	if err != nil {
 		_ = os.RemoveAll(packageDir)
-		return fmt.Errorf("failed to copy targets: %v", err)
+		return "", fmt.Errorf("failed to copy targets: %v", err)
 	}
 
 	// Create dependencies.json file in the package directory
@@ -34,8 +34,8 @@ func CreatePackage(packageFile string) error {
 	err = createDependenciesFile(mainPackage.Dependencies, dependenciesFile)
 	if err != nil {
 		_ = os.RemoveAll(packageDir)
-		return fmt.Errorf("failed to create dependencies file: %v", err)
+		return "", fmt.Errorf("failed to create dependencies file: %v", err)
 	}
 
-	return nil
+	return packageDir, nil
 }
