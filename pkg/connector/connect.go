@@ -2,6 +2,8 @@ package connector
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net"
 	"os"
 
 	"github.com/bpva/gopm/pkg/config"
@@ -63,4 +65,47 @@ func CheckSSHConnection(config config.SSHConfig) error {
 	}
 
 	return nil
+}
+
+func createSSHClient(sshConfig config.SSHConfig) (*ssh.Client, error) {
+	var authMethods []ssh.AuthMethod
+
+	if sshConfig.Mode == "login+password" {
+		authMethods = []ssh.AuthMethod{
+			ssh.Password(sshConfig.Password),
+		}
+	} else if sshConfig.Mode == "key" {
+		key, err := ioutil.ReadFile(sshConfig.KeyPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read private key file: %w", err)
+		}
+
+		signer, err := ssh.ParsePrivateKey(key)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse private key: %w", err)
+		}
+
+		authMethods = []ssh.AuthMethod{
+			ssh.PublicKeys(signer),
+		}
+	} else {
+		return nil, fmt.Errorf("unsupported SSH authentication mode: %s", sshConfig.Mode)
+	}
+
+	config := &ssh.ClientConfig{
+		User: sshConfig.Login,
+		Auth: authMethods,
+		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
+			return nil
+		},
+	}
+
+	addr := fmt.Sprintf("%s:%s", sshConfig.Host, sshConfig.Port)
+
+	client, err := ssh.Dial("tcp", addr, config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to SSH server: %w", err)
+	}
+
+	return client, nil
 }

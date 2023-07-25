@@ -30,4 +30,9 @@ func create(packageFile string, sshConfig config.SSHConfig) {
 	}
 	fmt.Println("size of arch is ", len(arch))
 	fmt.Println("package created")
+	err = connector.SendAndUnpackArchive(arch, sshConfig)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to send and unpack archive: %s\n", err)
+		os.Exit(1)
+	}
 }
