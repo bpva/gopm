@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/bpva/gopm/pkg/config"
 )
 
 func main() {
@@ -12,6 +14,15 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Commands:\n")
 		fmt.Fprintf(os.Stderr, "  create  Create a package\n")
 		fmt.Fprintf(os.Stderr, "  update  Update packages\n")
+		fmt.Fprintf(os.Stderr, "Flags:\n")
+		fmt.Fprintf(os.Stderr, "  -env  Path to the .env file\n")
+	}
+
+	envFilePath := flag.String("env", "", "Path to the .env file")
+	sshConfig, err := config.Configure(*envFilePath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to configure SSH connection: %v\n", err)
+		os.Exit(1)
 	}
 
 	flag.Parse()
@@ -28,7 +39,7 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Usage: %s create <package.json>\n", os.Args[0])
 			os.Exit(1)
 		}
-		create(flag.Arg(1))
+		create(flag.Arg(1), sshConfig)
 	case "update":
 		update()
 	default:

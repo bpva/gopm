@@ -30,4 +30,6 @@ gopm
 #packages
 gopm_packages
 
+#env
+.env
 
