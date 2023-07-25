@@ -19,7 +19,7 @@ type Update struct {
 }
 
 type UpdateConfig struct {
-	Updates []Update `json:"updates" yaml:"updates"`
+	Updates []Dependency `json:"packages" yaml:"packages"`
 }
 
 // Custom unmarshaler for the Dependency struct
@@ -156,30 +156,6 @@ func GetNameAndVersionFromConfigFile(configFilePath string) (string, string, err
 	}
 
 	return pkg.Name, pkg.Version, nil
-}
-
-func (u *Update) UnmarshalJSON(data []byte) error {
-	var temp struct {
-		Name     string `json:"name"`
-		Version  string `json:"ver"`
-		Operator string `json:"operator"`
-	}
-
-	if err := json.Unmarshal(data, &temp); err != nil {
-		return err
-	}
-
-	u.Name = temp.Name
-	u.Operator = temp.Operator
-
-	// Handle the version string based on the operator
-	if temp.Operator == "" {
-		u.Version = temp.Version
-	} else {
-		u.Version = strings.TrimPrefix(temp.Version, temp.Operator)
-	}
-
-	return nil
 }
 
 func ReadUpdateFile(filePath string) (UpdateConfig, error) {
