@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
@@ -170,7 +171,7 @@ func addDependencies(updateConfig *UpdateConfig, dependencies []Dependency) erro
 			}
 
 			if len(versions) > 0 {
-				// Use the first suitable version
+				// Use the greatest version
 				suitableVersion := versions[0]
 
 				dependenciesFilePath := filepath.Join(dependencyDir, suitableVersion, "dependencies.json")
@@ -232,6 +233,12 @@ func findSuitableVersions(dir, targetVersion, operator string) ([]string, error)
 			}
 		}
 	}
+
+	sort.Slice(versions, func(i, j int) bool {
+		v1, _ := semver.NewVersion(versions[i])
+		v2, _ := semver.NewVersion(versions[j])
+		return v1.GreaterThan(v2)
+	})
 
 	return versions, nil
 }
