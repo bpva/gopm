@@ -24,8 +24,12 @@ type UpdateConfig struct {
 
 // Custom unmarshaler for the Dependency struct
 func (d *Dependency) UnmarshalJSON(data []byte) error {
+	err := json.Unmarshal(data, &d)
+	if err == nil {
+		return nil
+	}
 	var depMap map[string]interface{}
-	err := json.Unmarshal(data, &depMap)
+	err = json.Unmarshal(data, &depMap)
 	if err != nil {
 		return err
 	}
@@ -37,6 +41,7 @@ func (d *Dependency) UnmarshalJSON(data []byte) error {
 	}
 
 	if version, ok := depMap["ver"].(string); ok {
+		fmt.Println("Custom unmarshaler called. Version is" + version)
 		d.Version, d.Operator = extractVersionAndOperator(version)
 	} else {
 		return errors.New("missing or invalid ver field in dependency")
