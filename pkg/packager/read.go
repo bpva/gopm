@@ -50,7 +50,6 @@ func (d *Dependency) UnmarshalJSON(data []byte) error {
 	}
 
 	if version, ok := depMap["ver"].(string); ok {
-		fmt.Println("Custom unmarshaler called. Version is" + version)
 		d.Version, d.Operator = extractVersionAndOperator(version)
 	} else {
 		return errors.New("missing or invalid ver field in dependency")
