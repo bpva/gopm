@@ -3,7 +3,6 @@ package connector
 import (
 	"fmt"
 	"io/ioutil"
-	"net"
 	"os"
 
 	"github.com/bpva/gopm/pkg/config"
@@ -93,11 +92,9 @@ func createSSHClient(sshConfig config.SSHConfig) (*ssh.Client, error) {
 	}
 
 	config := &ssh.ClientConfig{
-		User: sshConfig.Login,
-		Auth: authMethods,
-		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
-			return nil
-		},
+		User:            sshConfig.Login,
+		Auth:            authMethods,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
 	addr := fmt.Sprintf("%s:%s", sshConfig.Host, sshConfig.Port)
