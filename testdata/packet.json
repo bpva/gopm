@@ -1,6 +1,6 @@
 {
-    "name": "packet-2",
-    "ver": "1.2.0",
+    "name": "packet-1",
+    "ver": "1.0",
     "targets": [
         "./testdata/archive_this2/goba.txt",
         {
@@ -10,8 +10,8 @@
     ],
     "packets": [
         {
-            "name": "packet-3",
-            "ver": ">1.0.0"
+            "name": "packet-2",
+            "ver": ">1.5"
         }
     ]
 }

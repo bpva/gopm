@@ -1,8 +1,8 @@
 {
     "packages": [
         {
-            "name": "packet-2",
-            "ver": ">1.0"
+            "name": "packet-1",
+            "ver": ">=0.4"
         }
     ]
 }
