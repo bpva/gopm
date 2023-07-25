@@ -1,6 +1,7 @@
 package packager
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -62,25 +63,14 @@ func checkDependency(dependency Dependency) error {
 }
 
 func createDependenciesFile(dependencies []Dependency, dependenciesFile string) error {
-	// Create the directory if it doesn't exist
-	dir := filepath.Dir(dependenciesFile)
-	err := os.MkdirAll(dir, os.ModePerm)
+	dependenciesJSON, err := json.Marshal(dependencies)
 	if err != nil {
-		return fmt.Errorf("failed to create dependencies directory: %w", err)
+		return fmt.Errorf("failed to marshal dependencies to JSON: %w", err)
 	}
 
-	file, err := os.Create(dependenciesFile)
+	err = os.WriteFile(dependenciesFile, dependenciesJSON, 0644)
 	if err != nil {
-		return fmt.Errorf("failed to create dependencies file: %w", err)
-	}
-	defer file.Close()
-
-	for _, dependency := range dependencies {
-		line := fmt.Sprintf("%s %s\n", dependency.Name, dependency.Version)
-		_, err := file.WriteString(line)
-		if err != nil {
-			return fmt.Errorf("failed to write to dependencies file: %w", err)
-		}
+		return fmt.Errorf("failed to write dependencies file: %w", err)
 	}
 
 	return nil
