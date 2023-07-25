@@ -26,6 +26,10 @@ func Configure(envFilePath string) (SSHConfig, error) {
 		if err != nil {
 			return config, fmt.Errorf("failed to load .env file: %w", err)
 		}
+		err = fillSSHConfigFields(&config)
+		if err != nil {
+			return config, fmt.Errorf("failed to configure SSH connection: %w", err)
+		}
 		return config, nil
 	}
 
@@ -41,21 +45,33 @@ func Configure(envFilePath string) (SSHConfig, error) {
 			return config, fmt.Errorf("failed to load .env file: %w", err)
 		}
 		if hasRequiredEnvVars() {
+			err := fillSSHConfigFields(&config)
+			if err != nil {
+				return config, fmt.Errorf("failed to configure SSH connection: %w", err)
+			}
 			return config, nil
 		} else {
 			return config, fmt.Errorf("failed to configure SSH connection: no .env file found and required environment variables not set")
 		}
 	}
 
-	// Check if the required environment variables exist
-	if hasRequiredEnvVars() {
-		return config, nil
-	}
-
 	// If nothing found, print error and exit
 	return config, fmt.Errorf("failed to configure SSH connection: no .env file found and required environment variables not set")
 }
+func fillSSHConfigFields(config *SSHConfig) error {
+	config.Mode = os.Getenv("GOPM_SSH_MODE")
+	config.Login = os.Getenv("GOPM_SSH_LOGIN")
+	config.KeyPath = os.Getenv("GOPM_SSH_KEY_PATH")
+	config.Password = os.Getenv("GOPM_SSH_PASSWORD")
+	config.Host = os.Getenv("GOPM_SSH_HOST")
+	config.Port = os.Getenv("GOPM_SSH_PORT")
 
+	if err := validateSSHConfig(*config); err != nil {
+		return err
+	}
+
+	return nil
+}
 func loadEnvFile(envFilePath string) error {
 	err := godotenv.Load(envFilePath)
 	if err != nil {
