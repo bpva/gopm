@@ -24,8 +24,17 @@ type UpdateConfig struct {
 
 // Custom unmarshaler for the Dependency struct
 func (d *Dependency) UnmarshalJSON(data []byte) error {
-	err := json.Unmarshal(data, &d)
-	if err == nil {
+	var temp struct {
+		Name     string `json:"name"`
+		Version  string `json:"ver"`
+		Operator string `json:"operator"`
+	}
+
+	err := json.Unmarshal(data, &temp)
+	if err == nil && temp.Operator != "" {
+		d.Name = temp.Name
+		d.Version = temp.Version
+		d.Operator = temp.Operator
 		return nil
 	}
 	var depMap map[string]interface{}
