@@ -26,24 +26,29 @@ func Configure(envFilePath string) (SSHConfig, error) {
 		if err != nil {
 			return config, fmt.Errorf("failed to load .env file: %w", err)
 		}
-		fmt.Println(".env file loaded successfully")
 		return config, nil
 	}
 
 	// Try to locate the .env file in the current directory and one directory above
-	envFileExists, err := findEnvFile()
+	envFilePath, envFileExists, err := findEnvFile()
 	if err != nil {
 		return config, fmt.Errorf("failed to find .env file: %w", err)
 	}
 
 	if envFileExists {
-		fmt.Println(".env file found and loaded successfully")
-		return config, nil
+		err := loadEnvFile(envFilePath)
+		if err != nil {
+			return config, fmt.Errorf("failed to load .env file: %w", err)
+		}
+		if hasRequiredEnvVars() {
+			return config, nil
+		} else {
+			return config, fmt.Errorf("failed to configure SSH connection: no .env file found and required environment variables not set")
+		}
 	}
 
 	// Check if the required environment variables exist
 	if hasRequiredEnvVars() {
-		fmt.Println("Environment variables found")
 		return config, nil
 	}
 
@@ -56,34 +61,39 @@ func loadEnvFile(envFilePath string) error {
 	if err != nil {
 		return err
 	}
+	if !hasRequiredEnvVars() {
+		return fmt.Errorf("required environment variables missing in .env file or key file not exists")
+	}
 	return nil
 }
 
-func findEnvFile() (bool, error) {
+func findEnvFile() (string, bool, error) {
 	// Check in the current directory
 	currentDir, err := os.Getwd()
 	if err != nil {
-		return false, err
+		return "", false, err
 	}
-	envFileExists, err := fileExists(filepath.Join(currentDir, ".env"))
+	envFilePath := filepath.Join(currentDir, ".env")
+	envFileExists, err := fileExists(envFilePath)
 	if err != nil {
-		return false, err
+		return "", false, err
 	}
 	if envFileExists {
-		return true, nil
+		return envFilePath, true, nil
 	}
 
 	// Check in the parent directory
 	parentDir := filepath.Dir(currentDir)
-	envFileExists, err = fileExists(filepath.Join(parentDir, ".env"))
+	envFilePath = filepath.Join(parentDir, ".env")
+	envFileExists, err = fileExists(envFilePath)
 	if err != nil {
-		return false, err
+		return "", false, err
 	}
 	if envFileExists {
-		return true, nil
+		return envFilePath, true, nil
 	}
 
-	return false, nil
+	return "", false, nil
 }
 
 func fileExists(filePath string) (bool, error) {
@@ -112,7 +122,17 @@ func hasRequiredEnvVars() bool {
 		host := os.Getenv("GOPM_SSH_HOST")
 		port := os.Getenv("GOPM_SSH_PORT")
 		if login != "" && keyPath != "" && host != "" && port != "" {
-			return true
+			keyFileExists, err := fileExists(keyPath)
+			if err != nil {
+				fmt.Println("failed to check if key file exists: ", err)
+				return false
+			}
+			if keyFileExists {
+				return true
+			} else {
+				fmt.Println("key file does not exist")
+				return false
+			}
 		}
 	}
 	return false
