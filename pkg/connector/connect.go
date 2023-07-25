@@ -2,7 +2,6 @@ package connector
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/bpva/gopm/pkg/config"
@@ -74,7 +73,7 @@ func CreateSSHClient(sshConfig config.SSHConfig) (*ssh.Client, error) {
 			ssh.Password(sshConfig.Password),
 		}
 	} else if sshConfig.Mode == "key" {
-		key, err := ioutil.ReadFile(sshConfig.KeyPath)
+		key, err := os.ReadFile(sshConfig.KeyPath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read private key file: %w", err)
 		}

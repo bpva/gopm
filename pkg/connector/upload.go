@@ -58,8 +58,9 @@ func UploadAndUnpackArchive(arch []byte, sshClient *ssh.Client, packageName, pac
 		return fmt.Errorf("failed to upload archive: %w", err)
 	}
 
-	unpackCmd := fmt.Sprintf("unzip -o %s -d gopm_packages", archiveName)
-	err = session.Run(unpackCmd)
+	targetDir := fmt.Sprintf("gopm_packages/%s/%s", packageName, packageVersion)
+	createCmd := fmt.Sprintf("mkdir -p %s && unzip -o %s -d %s", targetDir, archiveName, targetDir)
+	err = session.Run(createCmd)
 	if err != nil {
 		return fmt.Errorf("failed to unpack archive on remote server: %w", err)
 	}

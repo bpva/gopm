@@ -12,7 +12,6 @@ import (
 
 func create(packageFile string, sshConfig config.SSHConfig) {
 	packageDir, err := packager.CreatePackage(packageFile)
-	fmt.Println(packageDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to create package: %s\n", err)
 		os.Exit(1)
@@ -36,7 +35,12 @@ func create(packageFile string, sshConfig config.SSHConfig) {
 		fmt.Fprintf(os.Stderr, "failed to create SSH client: %s\n", err)
 		os.Exit(1)
 	}
-	err = connector.UploadAndUnpackArchive(arch, sshClient, packageDir, packageFile)
+	name, version, err := packager.GetNameAndVersionFromConfigFile(packageFile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to get name and version from config file: %s\n", err)
+		os.Exit(1)
+	}
+	err = connector.UploadAndUnpackArchive(arch, sshClient, name, version)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to upload and unpack archive: %s\n", err)
 		os.Exit(1)
