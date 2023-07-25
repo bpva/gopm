@@ -106,7 +106,7 @@ func CollectDependencies(updateConfig *UpdateConfig, sshClient *ssh.Client) erro
 		}
 
 		dependencyDir := filepath.Join("gopm_packages", update.Name)
-		versions, err := findSuitableVersions(dependencyDir, update.Version, update.Operator, sshClient)
+		versions, err := FindSuitableVersions(dependencyDir, update.Version, update.Operator, sshClient)
 		if err != nil {
 			session.Close()
 			return fmt.Errorf("failed to find suitable versions: %w", err)
@@ -183,7 +183,7 @@ func addDependencies(updateConfig *UpdateConfig, dependencies []Dependency, sshC
 			updateConfig.Updates = append(updateConfig.Updates, newDependency)
 
 			dependencyDir := filepath.Join("gopm_packages", dependency.Name)
-			versions, err := findSuitableVersions(dependencyDir, dependency.Version, dependency.Operator, sshClient)
+			versions, err := FindSuitableVersions(dependencyDir, dependency.Version, dependency.Operator, sshClient)
 			if err != nil {
 				return fmt.Errorf("failed to find suitable versions: %w", err)
 			}
@@ -239,7 +239,7 @@ func addDependencies(updateConfig *UpdateConfig, dependencies []Dependency, sshC
 	return nil
 }
 
-func findSuitableVersions(dir, targetVersion, operator string, sshClient *ssh.Client) ([]string, error) {
+func FindSuitableVersions(dir, targetVersion, operator string, sshClient *ssh.Client) ([]string, error) {
 	versions := []string{}
 
 	if sshClient != nil {
