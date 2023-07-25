@@ -41,7 +41,11 @@ func main() {
 		}
 		create(flag.Arg(1), sshConfig)
 	case "update":
-		update()
+		if flag.NArg() < 2 {
+			fmt.Fprintf(os.Stderr, "Usage: %s create <package.json>\n", os.Args[0])
+			os.Exit(1)
+		}
+		update(flag.Arg(1), sshConfig)
 	default:
 		fmt.Fprintln(os.Stderr, "Unknown command. Available commands:")
 		flag.Usage()

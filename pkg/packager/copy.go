@@ -26,30 +26,6 @@ type Dependency struct {
 	Operator string `json:"operator" yaml:"operator"`
 }
 
-func init() {
-	packet := Package{
-		Name:    "packet-1",
-		Version: "1.2",
-		Targets: []Target{
-			{
-				Path:    "./testdata/archive_this1/*",
-				Exclude: "*.txt, *.omit",
-			},
-			{
-				Path:    "./testdata/archive_this2/*",
-				Exclude: "*.md, *.omit",
-			},
-		},
-		Dependencies: []Dependency{
-			{
-				Name:     "packet-3",
-				Version:  "4.0",
-				Operator: "<=",
-			},
-		},
-	}
-	_ = packet
-}
 func copyTargets(targets []Target, packageDir string) error {
 	for _, target := range targets {
 		matches, err := filepath.Glob(target.Path)

@@ -8,7 +8,7 @@ import (
 
 func CreatePackage(packageFile string) (string, error) {
 	// Read the package file
-	mainPackage, err := readConfigFile(packageFile)
+	mainPackage, err := readCreateFile(packageFile)
 	if err != nil {
 		return "", fmt.Errorf("failed to read package file: %v", err)
 	}
@@ -21,8 +21,14 @@ func CreatePackage(packageFile string) (string, error) {
 		}
 	}
 
-	// Copy targets to the gopm_packages/<package-name>/<package-version>/ directory
+	// Create the package directory
 	packageDir := filepath.Join("gopm_packages", mainPackage.Name, mainPackage.Version)
+	err = os.MkdirAll(packageDir, os.ModePerm)
+	if err != nil {
+		return "", fmt.Errorf("failed to create package directory: %v", err)
+	}
+
+	// Copy targets to the package directory
 	err = copyTargets(mainPackage.Targets, packageDir)
 	if err != nil {
 		_ = os.RemoveAll(packageDir)
