@@ -1,0 +1,17 @@
+{
+    "name": "packet-1",
+    "ver": "1.10",
+    "targets": [
+        "./testdata/archive_this2/goba.txt",
+        {
+            "path": "./testdata/archive_this1/*",
+            "exclude": "*.omit, *.bd"
+        }
+    ],
+    "packets": [
+        {
+            "name": "packet-3",
+            "ver": "<=1.0"
+        }
+    ]
+}

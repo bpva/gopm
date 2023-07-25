@@ -1,0 +1,5 @@
+name: packet-3
+ver: "2.10"
+targets:
+  - "./testdata/archive_this2/*"
+  - "./testdata/archive_this2/*.keep"
