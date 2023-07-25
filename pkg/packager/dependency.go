@@ -33,7 +33,7 @@ func checkDependency(dependency Dependency) error {
 	for _, installedVersion := range installedVersions {
 		// Use semver.Compare to compare the installed version with the required version based on the operator
 		switch dependency.Operator {
-		case "==":
+		case "==", "=":
 			if installedVersion.Equal(requiredVersion) {
 				return nil
 			}
