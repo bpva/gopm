@@ -58,8 +58,7 @@ func create(packageFile string, sshConfig config.SSHConfig) {
 	} else {
 		fmt.Println("SSH connection successful")
 	}
-	fmt.Println("size of arch is ", len(arch))
-	fmt.Println("package created")
+	fmt.Printf("Package %s v%s created localy\n", name, version)
 	sshClient, err := connector.CreateSSHClient(sshConfig)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to create SSH client: %s\n", err)
@@ -71,7 +70,7 @@ func create(packageFile string, sshConfig config.SSHConfig) {
 		fmt.Fprintf(os.Stderr, "failed to upload and unpack archive: %s\n", err)
 		os.Exit(1)
 	} else {
-		fmt.Println("archive uploaded and unpacked on remote server ", sshConfig.Login, "@", sshConfig.Host)
+		fmt.Printf("Package %s v%s uploaded and unpacked on remote server %s@%s\n", name, version, sshConfig.Login, sshConfig.Host)
 	}
 
 }
