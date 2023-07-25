@@ -11,8 +11,6 @@ import (
 )
 
 func create(packageFile string, sshConfig config.SSHConfig) {
-	// print all sshconfig fields
-	fmt.Println(sshConfig)
 	packageDir, err := packager.CreatePackage(packageFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to create package: %s\n", err)

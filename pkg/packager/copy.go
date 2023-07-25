@@ -52,17 +52,13 @@ func init() {
 }
 func copyTargets(targets []Target, packageDir string) error {
 	for _, target := range targets {
-		fmt.Println("target:", target)
 		matches, err := filepath.Glob(target.Path)
 		if err != nil {
 			return fmt.Errorf("failed to match pattern '%s': %w", target.Path, err)
 		}
 		excludes := strings.Split(target.Exclude, ",")
-		fmt.Println("excludes:", excludes)
 		for _, match := range matches {
-			fmt.Println("match:", match)
 			fileInfo, err := os.Stat(match)
-			fmt.Println("fileInfo:", fileInfo.Name())
 			if err != nil {
 				return fmt.Errorf("failed to access path '%s': %w", match, err)
 			}

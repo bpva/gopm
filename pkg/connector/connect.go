@@ -56,7 +56,6 @@ func CheckSSHConnection(config config.SSHConfig) error {
 	if err != nil {
 		return fmt.Errorf("failed to get home directory: %w", err)
 	}
-	fmt.Printf("Home Directory: %s\n", homeDir)
 
 	_, err = sftpClient.ReadDir(homeDir)
 	if err != nil {
