@@ -1,4 +1,4 @@
-name: packet-3
+name: packet-6
 ver: "2.10"
 targets:
   - "./testdata/archive_this2/*"
