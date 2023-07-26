@@ -12,7 +12,7 @@ You can install the Go Package Manager using the following methods:
 
 You can install the latest version of the Go Package Manager by running the following command in your terminal:
 
-`go install github.com/bpva/gopm/cmd/cli@latest`
+`go install github.com/bpva/gopm/cmd/gopm@latest`
 
 Then simply run:
 
