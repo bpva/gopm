@@ -8,11 +8,15 @@ The Go package manager is designed to perform the following tasks:
 
 You can install the Go Package Manager using the following methods:
 
-### Method 1: Using "go install"
+### Method 1: Using `go install`
 
 You can install the latest version of the Go Package Manager by running the following command in your terminal:
 
-go install github.com/bpva/gopm/cmd/cli@latest
+`go install github.com/bpva/gopm/cmd/cli@latest`
+
+Then simply run:
+
+`gopm`
 
 
 ### Method 2: From the Releases Page
@@ -43,7 +47,7 @@ If you want to specify a different location for the `.env` file, you can use the
 ```shell
 gopm create testdata/package.json -env /path/to/.env
 ```
-## Commands
+## Usage
 The package manager will provide the following commands:
 
 - `gopm create ./packet.json`: Packages the files specified in the package file into an archive.
