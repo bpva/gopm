@@ -28,17 +28,17 @@ func main() {
 		fmt.Fprintf(os.Stderr, "  -env  Path to the .env file\n")
 	}
 
-	envFilePath := flag.String("env", "", "Path to the .env file")
-	sshConfig, err := config.Configure(*envFilePath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to configure SSH connection: %v\n", err)
-		os.Exit(1)
-	}
-
 	flag.Parse()
 
 	if flag.NArg() == 0 {
 		flag.Usage()
+		os.Exit(1)
+	}
+
+	envFilePath := flag.String("env", "", "Path to the .env file")
+	sshConfig, err := config.Configure(*envFilePath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to configure SSH connection: %v\n", err)
 		os.Exit(1)
 	}
 
