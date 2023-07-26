@@ -1,5 +1,5 @@
 TARGET = gopm
-SOURCES = $(wildcard cmd/cli/main.go)
+SOURCES = $(wildcard cmd/gopm/)
 BUILD_FLAGS =
 build:
 	go build $(BUILD_FLAGS) -o $(TARGET) $(SOURCES)

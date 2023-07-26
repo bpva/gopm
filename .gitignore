@@ -22,7 +22,7 @@ go.work
 
 # binary
 bin/
-gopm
+./gopm
 
 # zips
 *.zip
