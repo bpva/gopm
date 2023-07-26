@@ -1,6 +1,6 @@
-# gopm — Go Package Manager
+# gopm — Package Manager written in Go
 
-The Go package manager is designed to perform the following tasks:
+The **gopm** is designed to perform the following tasks:
 
 - Package files into an archive and upload them to a server via SSH.
 - Download archive files via SSH and unpack them.
